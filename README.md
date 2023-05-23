@@ -1,2 +1,3 @@
-# MovieRecommender
-Intelligent agent- base system
+to run 
+# uvicorn main:app --reload
+
