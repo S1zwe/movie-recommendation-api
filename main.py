@@ -111,11 +111,10 @@ def process_movie_data(file_path):
 class GenreNode:
     def __init__(self, genre):
         self.genre = genre
-        self.connected_genres = set()
+        self.connected_genres = defaultdict(int)
 
     def add_connection(self, other_genre):
-        self.connected_genres.add(other_genre)
-
+        self.connected_genres[other_genre] += 1
 
 class GenreGraph:
     def __init__(self, movies):
@@ -131,7 +130,7 @@ class GenreGraph:
             for movie in movie_genre_map[genre]:
                 for other_genre in movie.getGenre():
                     if other_genre != genre:
-                        genre_nodes[genre].connected_genres.add(movie)
+                        genre_nodes[genre].add_connection(other_genre)
 
         return genre_nodes
 
@@ -142,15 +141,14 @@ class GenreGraph:
 
         while queue:
             current_genre_node = queue.pop(0)
-            visited.add(current_genre_node.genre)  # Here you should store genre string in visited set
+            visited.add(current_genre_node.genre)
 
-            for connected_genre in current_genre_node.connected_genres:
+            for connected_genre in current_genre_node.connected_genres.keys():
                 if connected_genre not in visited:
-                    queue.append(self.genre_nodes[connected_genre])  # Add connected GenreNode to the queue
-                    similar_genres.append(connected_genre)  # connected_genre is a genre string
+                    queue.append(self.genre_nodes[connected_genre])
+                    similar_genres.append(connected_genre)
 
         return similar_genres
-
 
 class StateType:
     def __init__(self):
@@ -221,16 +219,13 @@ class RecommendationPlan:
         self.movieRecommendations = self.generate_recommendations()
 
     def generate_recommendations(self):
-        # You can use the genre graph to find similar genres
-        # Then find the movies that have these similar genres.
-        similar_genres = self.genreGraph.bfs(
-            self.last_viewed_movie.getGenre()[0])  # assuming the first genre is the primary one
-        similar_movies = set()
+        similar_genres = self.genreGraph.bfs(self.last_viewed_movie.getGenre()[0])
+        similar_movies = []
         for genre in similar_genres:
-            for movie in self.genreGraph.genre_nodes[genre].connected_genres:
-                if movie != self.last_viewed_movie:
-                    similar_movies.add(movie)
-        return list(similar_movies)
+            for movie in self.last_viewed_movie.getSimilarMovies():
+                if genre in movie.getGenre() and movie != self.last_viewed_movie and movie not in similar_movies:
+                    similar_movies.append(movie)
+        return similar_movies
 
     def getRecommendations(self):
         return self.movieRecommendations
@@ -275,6 +270,60 @@ class Recommender:
                 self.setMovieRecommendation(plan)
         else:
             pass  # placeholder for update action
+
+
+class User:
+    def __init__(self, username, watchlist=[]):
+        self.username = username
+        self.watchlist = watchlist
+
+    def getUsername(self):
+        return self.username
+
+    def setUsername(self, username):
+        self.username = username
+
+    def getWatchlist(self):
+        return self.watchlist
+
+    def setWatchlist(self, newWatchlist):
+        self.watchlist = newWatchlist
+
+
+class WatchlistManagement:
+    def __init__(self):
+        self.userWatchlists = {}
+
+    def getUserWatchlist(self, user):
+        return self.userWatchlists.get(user.getUsername(), [])
+
+    def addToWatchlist(self, user, movie):
+        if user.getUsername() not in self.userWatchlists:
+            self.userWatchlists[user.getUsername()] = []
+        self.userWatchlists[user.getUsername()].append(movie)
+
+    def removeFromWatchlist(self, user, movie):
+        if user.getUsername() in self.userWatchlists and movie in self.userWatchlists[user.getUsername()]:
+            self.userWatchlists[user.getUsername()].remove(movie)
+
+    def storeUserWatchlist(self, user):
+        if user.getUsername() in self.userWatchlists:
+            watchlist = self.userWatchlists[user.getUsername()]
+            df = pd.DataFrame([movie.__dict__ for movie in watchlist])
+            df.to_csv(f'{user.getUsername()}_watchlist.csv', index=False)
+
+    def updateUserWatchlist(self, user):
+        try:
+            df = pd.read_csv(f'{user.getUsername()}_watchlist.csv')
+            movies = []
+            for _, row in df.iterrows():
+                movie = Movie(row['title'], row['director'], row['release_year'], row['genre'], row['rating'],
+                              row['plot'], row['poster_link'], row['similar_movies'])
+                movies.append(movie)
+            self.userWatchlists[user.getUsername()] = movies
+        except FileNotFoundError:
+            print(f"No existing watchlist for user: {user.getUsername()}")
+
 
 # Usage example:
 file_path = './assets/movies.csv'
