@@ -340,16 +340,27 @@ for movie in watchlistManagement.getUserWatchlist(user):
 template_path = 'index.html'
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    recommendations = []
     if request.method == 'POST':
-        user_input = request.form['movie_title']
-        analyser = Analyser(user_input, movies)
-        result_movie = analyser.analyse()
-        last_viewed_movie = result_movie
-        plan = RecommendationPlan(last_viewed_movie, genreGraph)
-        recommender.act(user, plan)
-        recommendations = recommender.getMovieRecommendations()
-    return render_template(template_path, recommendations=recommendations)
+        movie_title = request.form.get('movie_title')
+        if movie_title:
+            recommendations = get_recommendations(movie_title)  # Assuming this is your function to get recommendations
+            return render_template('index.html', recommendations=recommendations)
+
+    return render_template('index.html', recommendations=[])
+
+def get_recommendations(title):
+    analyser = Analyser(title, movies)
+    result_movie = analyser.analyse()
+    recommender = Recommender(movies, genreGraph, watchlistManagement)  # Pass the genreGraph to the Recommender
+    plan = RecommendationPlan(result_movie, genreGraph)
+    goal_recommend = Goal("recommend", "has recommendations", "active", "recommend")
+    recommender.addGoal(goal_recommend)
+    recommender.setActiveGoal(goal_recommend)
+    recommender.act(user, plan)
+    print("Has recommendations?", goal_recommend.isAchieved(recommender))
+    # Fetch the recommended movies
+    recommended_movies = recommender.getMovieRecommendations()
+    return recommended_movies
 
 @app.route('/watchlist', methods=['GET'])
 def watchlist():

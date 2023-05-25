@@ -1,57 +1,42 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Movie Recommendation</title>
-    <style>
-        body {background-color: #ffffff; color: #000000; font-family: Arial, sans-serif;}
-        .button {
-            display: inline-block;
-            padding: 10px 20px;
-            font-size: 20px;
-            cursor: pointer;
-            text-align: center;
-            text-decoration: none;
-            outline: none;
-            color: #fff;
-            background-color: #2F4F4F;
-            border: none;
-            border-radius: 15px;
-            box-shadow: 0 9px #999;
-        }
-
-        .button:hover {background-color: #3e8e41}
-
-        .button:active {
-            background-color: #3e8e41;
-            box-shadow: 0 5px #666;
-            transform: translateY(4px);
-        }
-    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Recommender</title>
+    <!-- Add Bootstrap CSS for grid layout -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
 </head>
 <body>
- <h1>Welcome to the Movie Recommendation System!</h1>
-    <form method="POST">
-        <label for="movie_title">Enter a movie title:</label>
-        <input type="text" id="movie_title" name="movie_title" required>
-        <input type="submit" value="Get Recommendations">
-    </form>
- <br>
-    <a href="{{ url_for('watchlist') }}" class="button">Go to Watchlist</a>
+    <div class="container">
+        <h1 class="text-center my-4">Movie Recommendations</h1>
+        <form action="/" method="post">
+            <div class="form-group">
+                <label for="movie_title">Enter a movie title</label>
+                <input type="text" class="form-control" id="movie_title" name="movie_title" placeholder="enter your favourite movie, i'll recommend something you might like :)">
+            </div>
+            <button type="submit" class="btn btn-primary">Search</button>
 
-    <hr>
-    {% for movie in recommendations %}
-    <div class="movie">
-        <h2>{{ movie.title }}</h2>
-        <form action="/add_to_watchlist" method="post">
-            <input type="hidden" name="movie_title" value="{{ movie.title }}">
-            <input type="submit" value="Add to Watchlist">
+            <a href="/watchlist" class="btn btn-secondary">View Watchlist</a>
         </form>
-        <form action="/remove_from_watchlist" method="post">
-            <input type="hidden" name="movie_title" value="{{ movie.title }}">
-            <input type="submit" value="Remove from Watchlist">
-        </form>
+
+        <!-- Display movie recommendations -->
+        <div class="row mt-5">
+            {% for movie in recommendations %}
+                <div class="col-6 col-sm-4 col-md-3 col-lg-2 my-3">
+                    <div class="card">
+                        <img src="{{ movie.poster_link }}" class="card-img-top" alt="{{ movie.title }}">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ movie.title }}</h5>
+                            <form action="/add_to_watchlist" method="post">
+                                <input type="hidden" name="movie_title" value="{{ movie.title }}">
+                                <button type="submit" class="btn btn-primary">Add to watchlist</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
     </div>
-{% endfor %}
-
 </body>
 </html>
