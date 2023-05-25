@@ -4,7 +4,9 @@ from collections import defaultdict
 
 
 class Movie:
-    def __init__(self, title, director, release_year, genre, rating, plot, poster_link, similar_movies=[]):
+    def __init__(self, title, director, release_year, genre, rating, plot, poster_link, similar_movies=None):
+        if similar_movies is None:
+            similar_movies = []
         self.title = title
         self.director = director
         self.release_year = release_year
@@ -14,34 +16,6 @@ class Movie:
         self.poster_link = poster_link
         self.similar_movies = similar_movies
 
-    def getTitle(self):
-        return self.title
-
-    def getDirector(self):
-        return self.director
-
-    def getReleaseYear(self):
-        return self.release_year
-
-    def getGenre(self):
-        return self.genre
-
-    def getRating(self):
-        return self.rating
-
-    def getPlot(self):
-        return self.plot
-
-    def getPosterLink(self):
-        return self.poster_link
-
-    def getSimilarMovies(self):
-        return self.similar_movies
-
-    def setRating(self, newRating):
-        self.rating = newRating
-
-
 class Analyser:
     def __init__(self, userInput, movies):
         self.userInput = userInput
@@ -50,17 +24,14 @@ class Analyser:
     def getUserInput(self):
         return self.userInput
 
-    def Analyse(self):
-        for movie in self.movies:
-            if movie.getTitle().lower() == self.userInput.lower():
-                return movie
-        return None
+    def analyse(self):
+        return next((movie for movie in self.movies if movie.title.lower() == self.userInput.lower()), None)
 
 
 def create_genre_map(movies):
     genre_map = defaultdict(list)
     for movie in movies:
-        for genre in movie.getGenre():
+        for genre in movie.genre:
             genre_map[genre].append(movie)
     return genre_map
 
@@ -108,9 +79,9 @@ def process_movie_data(file_path):
     genre_map = create_genre_map(movie_objects)
     for movie in movie_objects:
         similar_movies = set()
-        for genre in movie.getGenre():
+        for genre in movie.genre:
             for similar_movie in genre_map[genre]:
-                if similar_movie.getTitle() != movie.getTitle():
+                if similar_movie.title != movie.title:
                     similar_movies.add(similar_movie)
         movie.similar_movies = list(similar_movies)
 
@@ -138,7 +109,7 @@ class GenreGraph:
             if genre not in genre_nodes:
                 genre_nodes[genre] = GenreNode(genre)
             for movie in movie_genre_map[genre]:
-                for other_genre in movie.getGenre():
+                for other_genre in movie.genre:
                     if other_genre != genre:
                         genre_nodes[genre].add_connection(other_genre)
 
@@ -201,11 +172,11 @@ class RecommendationPlan:
         self.movieRecommendations = self.generate_recommendations()
 
     def generate_recommendations(self):
-        similar_genres = self.genreGraph.bfs(self.last_viewed_movie.getGenre()[0])
+        similar_genres = self.genreGraph.bfs(self.last_viewed_movie.genre[0])
         similar_movies = set()  # use a set instead of list
         for genre in similar_genres:
-            for movie in self.last_viewed_movie.getSimilarMovies():
-                if genre in movie.getGenre() and movie != self.last_viewed_movie:
+            for movie in self.last_viewed_movie.similar_movies:
+                if genre in movie.genre and movie != self.last_viewed_movie:
                     similar_movies.add(movie)
         return list(similar_movies)  # convert the set back to a list
 
@@ -321,7 +292,7 @@ watchlistManagement = WatchlistManagement()
 user = User('JohnDoe')
 
 analyser = Analyser('Inception', movies)
-result_movie = analyser.Analyse()
+result_movie = analyser.analyse()
 
 recommender = Recommender(movies, genreGraph, watchlistManagement)  # Pass the genreGraph to the Recommender
 goal_recommend = Goal("recommend", "has recommendations", "active", "recommend")
@@ -339,7 +310,7 @@ recommended_movies = recommender.getMovieRecommendations()
 
 # Print the titles of the recommended movies
 for movie in recommended_movies:
-    print(movie.getTitle())
+    print(movie.title)
 
 # Let's add the first recommended movie to the user's watchlist
 goal_update_add = Goal("update", "add", "active", "update")
@@ -350,7 +321,7 @@ recommender.act(user, None, recommended_movies[6])
 # Let's check if the movie was added successfully
 print("User's watchlist after adding a movie:")
 for movie in watchlistManagement.getUserWatchlist(user):
-    print(movie.getTitle())
+    print(movie.title)
 
 # Let's remove the added movie from the user's watchlist
 goal_update_remove = Goal("update", "remove", "active", "update")
@@ -361,4 +332,4 @@ recommender.act(user, None, recommended_movies[6])
 # Let's check if the movie was removed successfully
 print("User's watchlist after removing a movie:")
 for movie in watchlistManagement.getUserWatchlist(user):
-    print(movie.getTitle())
+    print(movie.title)
