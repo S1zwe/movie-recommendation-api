@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>User Watchlist</title>
+    <style>
+        body {background-color: #ffffff; color: #000000; font-family: Arial, sans-serif;}
+        table {border-collapse: collapse; width: 100%;}
+        th, td {text-align: left; padding: 8px;}
+        tr:nth-child(even) {background-color: #f2f2f2;}
+        th {background-color: #2F4F4F; color: white;}
+        img {width: 100px; height: auto;}
+    </style>
+</head>
+<body>
+    <h1>Watchlist</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Director</th>
+                <th>Release Year</th>
+                <th>Genre</th>
+                <th>Rating</th>
+                <th>Plot</th>
+                <th>Poster</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for movie in watchlist %}
+            <tr>
+                <td>{{ movie.title }}</td>
+                <td>{{ movie.director }}</td>
+                <td>{{ movie.release_year }}</td>
+                <td>{{ ', '.join(movie.genre) }}</td>
+                <td>{{ movie.rating }}</td>
+                <td>{{ movie.plot }}</td>
+                <td>
+                    <img src="{{ movie.poster_link }}" alt="{{ movie.title }} poster">
+                </td>
+                <td>
+                    <form action="/remove_from_watchlist" method="post">
+            <input type="hidden" name="movie_title" value="{{ movie.title }}">
+            <input type="submit" value="Remove from Watchlist">
+        </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <br>
+    <a href="{{ url_for('index') }}">Back to Movie Recommendations</a>
+</body>
+</html>

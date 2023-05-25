@@ -2,6 +2,9 @@ import pandas as pd
 import numpy as np
 from collections import defaultdict
 
+from flask import Flask, request, render_template, redirect, url_for
+
+app = Flask(__name__)
 
 class Movie:
     def __init__(self, title, director, release_year, genre, rating, plot, poster_link, similar_movies=None):
@@ -333,3 +336,60 @@ recommender.act(user, None, recommended_movies[6])
 print("User's watchlist after removing a movie:")
 for movie in watchlistManagement.getUserWatchlist(user):
     print(movie.title)
+
+template_path = 'index.html'
+@app.route('/', methods=['GET', 'POST'])
+def index():
+    recommendations = []
+    if request.method == 'POST':
+        user_input = request.form['movie_title']
+        analyser = Analyser(user_input, movies)
+        result_movie = analyser.analyse()
+        last_viewed_movie = result_movie
+        plan = RecommendationPlan(last_viewed_movie, genreGraph)
+        recommender.act(user, plan)
+        recommendations = recommender.getMovieRecommendations()
+    return render_template(template_path, recommendations=recommendations)
+
+@app.route('/watchlist', methods=['GET'])
+def watchlist():
+    watchlist = watchlistManagement.getUserWatchlist(user)
+    return render_template('watchlist.html', watchlist=watchlist)
+
+
+@app.route('/add_to_watchlist', methods=['POST'])
+def add_to_watchlist():
+    if request.method == 'POST':
+        movie_title = request.form['movie_title']
+        movie = next((movie for movie in movies if movie.title.lower() == movie_title.lower()), None)
+        if movie:
+            goal_update_add = Goal("update", "add", "active", "update")
+            recommender.addGoal(goal_update_add)
+            recommender.setActiveGoal(goal_update_add)
+            recommender.act(user, None, movie)
+        return redirect(url_for('index'))
+
+@app.route('/remove_from_watchlist', methods=['POST'])
+def remove_from_watchlist():
+    if request.method == 'POST':
+        movie_title = request.form['movie_title']
+        movie = next((movie for movie in movies if movie.title.lower() == movie_title.lower()), None)
+        if movie:
+            goal_update_remove = Goal("update", "remove", "active", "update")
+            recommender.addGoal(goal_update_remove)
+            recommender.setActiveGoal(goal_update_remove)
+            recommender.act(user, None, movie)
+        return redirect(url_for('index'))
+
+
+if __name__ == "__main__":
+    file_path = './assets/movies.csv'
+    movies = process_movie_data(file_path)
+    genreGraph = GenreGraph(movies)  # Create GenreGraph once
+    watchlistManagement = WatchlistManagement()
+    user = User('JohnDoe')
+    recommender = Recommender(movies, genreGraph, watchlistManagement)
+    goal_recommend = Goal("recommend", "has recommendations", "active", "recommend")
+    recommender.addGoal(goal_recommend)
+    recommender.setActiveGoal(goal_recommend)
+    app.run(debug=True)

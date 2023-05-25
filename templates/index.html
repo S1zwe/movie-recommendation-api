@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Movie Recommendation</title>
+    <style>
+        body {background-color: #ffffff; color: #000000; font-family: Arial, sans-serif;}
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            font-size: 20px;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+            outline: none;
+            color: #fff;
+            background-color: #2F4F4F;
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 9px #999;
+        }
+
+        .button:hover {background-color: #3e8e41}
+
+        .button:active {
+            background-color: #3e8e41;
+            box-shadow: 0 5px #666;
+            transform: translateY(4px);
+        }
+    </style>
+</head>
+<body>
+ <h1>Welcome to the Movie Recommendation System!</h1>
+    <form method="POST">
+        <label for="movie_title">Enter a movie title:</label>
+        <input type="text" id="movie_title" name="movie_title" required>
+        <input type="submit" value="Get Recommendations">
+    </form>
+ <br>
+    <a href="{{ url_for('watchlist') }}" class="button">Go to Watchlist</a>
+
+    <hr>
+    {% for movie in recommendations %}
+    <div class="movie">
+        <h2>{{ movie.title }}</h2>
+        <form action="/add_to_watchlist" method="post">
+            <input type="hidden" name="movie_title" value="{{ movie.title }}">
+            <input type="submit" value="Add to Watchlist">
+        </form>
+        <form action="/remove_from_watchlist" method="post">
+            <input type="hidden" name="movie_title" value="{{ movie.title }}">
+            <input type="submit" value="Remove from Watchlist">
+        </form>
+    </div>
+{% endfor %}
+
+</body>
+</html>
