@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 from collections import defaultdict
 
+
 class Movie:
     def __init__(self, title, director, release_year, genre, rating, plot, poster_link, similar_movies=[]):
         self.title = title
@@ -12,7 +13,6 @@ class Movie:
         self.plot = plot
         self.poster_link = poster_link
         self.similar_movies = similar_movies
-
 
     def getTitle(self):
         return self.title
@@ -41,6 +41,7 @@ class Movie:
     def setRating(self, newRating):
         self.rating = newRating
 
+
 class Analyser:
     def __init__(self, userInput, movies):
         self.userInput = userInput
@@ -55,12 +56,14 @@ class Analyser:
                 return movie
         return None
 
+
 def create_genre_map(movies):
     genre_map = defaultdict(list)
     for movie in movies:
         for genre in movie.getGenre():
             genre_map[genre].append(movie)
     return genre_map
+
 
 def process_movie_data(file_path):
     try:
@@ -71,10 +74,13 @@ def process_movie_data(file_path):
 
     try:
         # clean up data
-        movie_data.drop(['Certificate', 'Runtime', 'Meta_score', 'Star1', 'Star2', 'Star3', 'Star4', 'No_of_Votes', 'Gross'], axis=1, inplace=True)
+        movie_data.drop(
+            ['Certificate', 'Runtime', 'Meta_score', 'Star1', 'Star2', 'Star3', 'Star4', 'No_of_Votes', 'Gross'],
+            axis=1, inplace=True)
         movie_data['Genre'] = movie_data['Genre'].apply(lambda x: x.split(',') if isinstance(x, str) else [])
 
-        movie_data.dropna(subset=['Series_Title', 'Released_Year', 'Genre', 'IMDB_Rating', 'Overview', 'Director'], inplace=True)
+        movie_data.dropna(subset=['Series_Title', 'Released_Year', 'Genre', 'IMDB_Rating', 'Overview', 'Director'],
+                          inplace=True)
 
         # create Movie objects
         movie_objects = []
@@ -91,7 +97,9 @@ def process_movie_data(file_path):
                 print(f"Invalid rating value {row['IMDB_Rating']} for movie {row['Series_Title']}")
                 continue  # skip this movie and move to the next one
 
-            movie_objects.append(Movie(row['Series_Title'], row['Director'], release_year, row['Genre'], rating, row['Overview'], row['Poster_Link']))
+            movie_objects.append(
+                Movie(row['Series_Title'], row['Director'], release_year, row['Genre'], rating, row['Overview'],
+                      row['Poster_Link']))
     except Exception as e:
         print(f"Error occurred while processing movie data:\n{e}")
         return []
@@ -108,6 +116,7 @@ def process_movie_data(file_path):
 
     return movie_objects
 
+
 class GenreNode:
     def __init__(self, genre):
         self.genre = genre
@@ -115,6 +124,7 @@ class GenreNode:
 
     def add_connection(self, other_genre):
         self.connected_genres[other_genre] += 1
+
 
 class GenreGraph:
     def __init__(self, movies):
@@ -135,6 +145,11 @@ class GenreGraph:
         return genre_nodes
 
     def bfs(self, start_genre):
+
+        if start_genre not in self.genre_nodes:
+            print(f"The genre {start_genre} does not exist in the genre graph.")
+            return []  # Return an empty list
+
         visited = set()
         queue = [self.genre_nodes[start_genre]]
         similar_genres = []
@@ -150,42 +165,9 @@ class GenreGraph:
 
         return similar_genres
 
-class StateType:
-    def __init__(self):
-        self.active = "active"
-        self.inactive = "inactive"
-
-    def getActive(self):
-        return self.active
-
-    def getInactive(self):
-        return self.inactive
-
-    def setActive(self):
-        self.active = "active"
-
-    def setInactive(self):
-        self.active = "inactive"
-
-class ActionType:
-    def __init__(self):
-        self.recommend = "recommend"
-        self.update = "update"
-
-    def getRecommend(self):
-        return self.recommend
-
-    def getUpdate(self):
-        return self.update
-
-    def setRecommend(self):
-        self.recommend = "recommend"
-
-    def setUpdate(self):
-        self.update = "update"
 
 class Goal:
-    def __init__(self, name, desired_state, state=StateType(), action=ActionType()):
+    def __init__(self, name, desired_state, state, action):
         self.name = name
         self.state = state
         self.action = action
@@ -220,22 +202,23 @@ class RecommendationPlan:
 
     def generate_recommendations(self):
         similar_genres = self.genreGraph.bfs(self.last_viewed_movie.getGenre()[0])
-        similar_movies = []
+        similar_movies = set()  # use a set instead of list
         for genre in similar_genres:
             for movie in self.last_viewed_movie.getSimilarMovies():
-                if genre in movie.getGenre() and movie != self.last_viewed_movie and movie not in similar_movies:
-                    similar_movies.append(movie)
-        return similar_movies
+                if genre in movie.getGenre() and movie != self.last_viewed_movie:
+                    similar_movies.add(movie)
+        return list(similar_movies)  # convert the set back to a list
 
     def getRecommendations(self):
         return self.movieRecommendations
 
 
 class Recommender:
-    def __init__(self, movieDataset, genreGraph):
+    def __init__(self, movieDataset, genreGraph, watchlistManagement):
         self.movieRecomendations = []
         self.movieDataset = movieDataset
         self.genreGraph = genreGraph
+        self.watchlistManagement = watchlistManagement
         self.goal = None
         self.recommendationGoals = []
 
@@ -264,12 +247,17 @@ class Recommender:
     def getGoal(self):
         return self.goal
 
-    def act(self, plan=None):
-        if self.goal.action.getRecommend() == "recommend":
+    def act(self, user, plan=None, movie=None):
+        if self.goal.action == "recommend":  # For "recommend" action
             if plan:
                 self.setMovieRecommendation(plan)
-        else:
-            pass  # placeholder for update action
+        elif self.goal.action == "update":  # For "update" action
+            if movie:
+                if self.goal.desired_state == "add":
+                    self.watchlistManagement.addToWatchlist(user, movie)
+                elif self.goal.desired_state == "remove":
+                    self.watchlistManagement.removeFromWatchlist(user, movie)
+            self.watchlistManagement.storeUserWatchlist(user)
 
 
 class User:
@@ -329,16 +317,21 @@ class WatchlistManagement:
 file_path = './assets/movies.csv'
 movies = process_movie_data(file_path)
 genreGraph = GenreGraph(movies)  # Create GenreGraph once
+watchlistManagement = WatchlistManagement()
+user = User('JohnDoe')
+
 analyser = Analyser('Inception', movies)
 result_movie = analyser.Analyse()
 
-recommender = Recommender(movies, genreGraph)  # Pass the genreGraph to the Recommender
-goal_recommend = Goal("recommend", "has recommendations")
+recommender = Recommender(movies, genreGraph, watchlistManagement)  # Pass the genreGraph to the Recommender
+goal_recommend = Goal("recommend", "has recommendations", "active", "recommend")
 recommender.addGoal(goal_recommend)
 recommender.setActiveGoal(goal_recommend)
+
 last_viewed_movie = result_movie  # Assume the last viewed movie is the one analysed
 plan = RecommendationPlan(last_viewed_movie, genreGraph)
-recommender.act(plan)
+recommender.act(user, plan)
+
 print("Has recommendations?", goal_recommend.isAchieved(recommender))
 
 # Fetch the recommended movies
@@ -346,4 +339,26 @@ recommended_movies = recommender.getMovieRecommendations()
 
 # Print the titles of the recommended movies
 for movie in recommended_movies:
+    print(movie.getTitle())
+
+# Let's add the first recommended movie to the user's watchlist
+goal_update_add = Goal("update", "add", "active", "update")
+recommender.addGoal(goal_update_add)
+recommender.setActiveGoal(goal_update_add)
+recommender.act(user, None, recommended_movies[6])
+
+# Let's check if the movie was added successfully
+print("User's watchlist after adding a movie:")
+for movie in watchlistManagement.getUserWatchlist(user):
+    print(movie.getTitle())
+
+# Let's remove the added movie from the user's watchlist
+goal_update_remove = Goal("update", "remove", "active", "update")
+recommender.addGoal(goal_update_remove)
+recommender.setActiveGoal(goal_update_remove)
+recommender.act(user, None, recommended_movies[6])
+
+# Let's check if the movie was removed successfully
+print("User's watchlist after removing a movie:")
+for movie in watchlistManagement.getUserWatchlist(user):
     print(movie.getTitle())

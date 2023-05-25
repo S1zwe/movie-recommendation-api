@@ -4,7 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ef7e5756-f7cc-4d67-9c7a-c1b4b87673d7" name="Changes" comment="feat: analyser + recommender agent">
+    <list default="true" id="ef7e5756-f7cc-4d67-9c7a-c1b4b87673d7" name="Changes" comment="phase 1:  basic Multi-Agent system">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
     </list>
@@ -84,11 +84,19 @@
       <option name="project" value="LOCAL" />
       <updated>1684880150822</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="phase 1:  basic Multi-Agent system">
+      <created>1684935471046</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1684935471046</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="feat: analyser + recommender agent" />
-    <option name="LAST_COMMIT_MESSAGE" value="feat: analyser + recommender agent" />
+    <MESSAGE value="phase 1:  basic Multi-Agent system" />
+    <option name="LAST_COMMIT_MESSAGE" value="phase 1:  basic Multi-Agent system" />
   </component>
 </project>
