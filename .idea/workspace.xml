@@ -4,11 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ef7e5756-f7cc-4d67-9c7a-c1b4b87673d7" name="Changes" comment="phase 0: added UI/UX">
+    <list default="true" id="ef7e5756-f7cc-4d67-9c7a-c1b4b87673d7" name="Changes" comment="phase 2: added UI/UX">
+      <change afterPath="$PROJECT_DIR$/templates/setUp.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/JohnDoe_watchlist.csv" beforeDir="false" afterPath="$PROJECT_DIR$/JohnDoe_watchlist.csv" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/home.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/templates/watchlist.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/watchlist.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -129,7 +130,14 @@
       <option name="project" value="LOCAL" />
       <updated>1685030103631</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="phase 2: added UI/UX">
+      <created>1685045040810</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1685045040810</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -138,6 +146,7 @@
     <MESSAGE value="phase 1: Multi-Agent system" />
     <MESSAGE value="phase 2: Multi-Agent system" />
     <MESSAGE value="phase 0: added UI/UX" />
-    <option name="LAST_COMMIT_MESSAGE" value="phase 0: added UI/UX" />
+    <MESSAGE value="phase 2: added UI/UX" />
+    <option name="LAST_COMMIT_MESSAGE" value="phase 2: added UI/UX" />
   </component>
 </project>

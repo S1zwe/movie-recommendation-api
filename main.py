@@ -337,16 +337,29 @@ print("User's watchlist after removing a movie:")
 for movie in watchlistManagement.getUserWatchlist(user):
     print(movie.title)
 
-template_path = 'index.html'
+
 @app.route('/', methods=['GET', 'POST'])
-def index():
+def setup():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        global user
+        user = User(username)
+        watchlistManagement.updateUserWatchlist(user)
+        return redirect(url_for('home'))
+
+    return render_template('setUp.html')
+
+
+template_path = 'home.html'
+@app.route('/home', methods=['GET', 'POST'])
+def home():
     if request.method == 'POST':
         movie_title = request.form.get('movie_title')
         if movie_title:
             recommendations = get_recommendations(movie_title)  # Assuming this is your function to get recommendations
-            return render_template('index.html', recommendations=recommendations)
+            return render_template('home.html', recommendations=recommendations)
 
-    return render_template('index.html', recommendations=[])
+    return render_template('home.html', recommendations=[])
 
 def get_recommendations(title):
     analyser = Analyser(title, movies)
@@ -378,7 +391,7 @@ def add_to_watchlist():
             recommender.addGoal(goal_update_add)
             recommender.setActiveGoal(goal_update_add)
             recommender.act(user, None, movie)
-        return redirect(url_for('index'))
+        return redirect(url_for('home'))
 
 @app.route('/remove_from_watchlist', methods=['POST'])
 def remove_from_watchlist():
@@ -390,7 +403,7 @@ def remove_from_watchlist():
             recommender.addGoal(goal_update_remove)
             recommender.setActiveGoal(goal_update_remove)
             recommender.act(user, None, movie)
-        return redirect(url_for('index'))
+        return redirect(url_for('watchlist'))
 
 
 if __name__ == "__main__":

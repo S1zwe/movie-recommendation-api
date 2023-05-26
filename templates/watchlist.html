@@ -3,13 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <title>Watchlist</title>
-        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #333;
+            color: #f5f5f5;
+        }
+
+        .btn-primary {
+            background-color: #ff5722;
+            border: none;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #f5f5f5;
+            color: black;
+        }
+
+        .card {
+            background-color: #555;
+        }
+
+        .card-title, .card-img-top {
+            color: #f5f5f5;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
-<h1 class="text-center my-4">My Watchlist</h1>
-
-  <div class="row mt-5">
+        <h1 class="text-center my-4">My Watchlist</h1>
+        <div class="text-center my-4">
+            <a href="/home" class="btn btn-primary">Home</a>
+        </div>
+        <div class="row mt-5">
             {% for movie in watchlist %}
                 <div class="col-6 col-sm-4 col-md-3 col-lg-2 my-3">
                     <div class="card">
@@ -25,8 +52,6 @@
                 </div>
             {% endfor %}
         </div>
-         </div>
+    </div>
 </body>
 </html>
-
-
