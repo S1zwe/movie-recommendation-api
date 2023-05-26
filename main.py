@@ -1,12 +1,14 @@
 import pandas as pd
-import numpy as np
 from collections import defaultdict
 
 from flask import Flask, request, render_template, redirect, url_for
 
 app = Flask(__name__)
 
+
 class Movie:
+    """A class to represent a movie with its attributes like title, director, genre, etc."""
+
     def __init__(self, title, director, release_year, genre, rating, plot, poster_link, similar_movies=None):
         if similar_movies is None:
             similar_movies = []
@@ -19,7 +21,11 @@ class Movie:
         self.poster_link = poster_link
         self.similar_movies = similar_movies
 
+
 class Analyser:
+    """A class for the analyser agent used for analysing the user input and checking if it matches the title of any
+    movie in the database."""
+
     def __init__(self, userInput, movies):
         self.userInput = userInput
         self.movies = movies
@@ -32,6 +38,9 @@ class Analyser:
 
 
 def create_genre_map(movies):
+    """
+    creates a mapping of genres to movies, useful for movie recommendation based on genre.
+    """
     genre_map = defaultdict(list)
     for movie in movies:
         for genre in movie.genre:
@@ -40,6 +49,9 @@ def create_genre_map(movies):
 
 
 def process_movie_data(file_path):
+    """
+    reads a csv file, cleans up data, and processes the data into a list of movie objects.
+    """
     try:
         movie_data = pd.read_csv(file_path)
     except Exception as e:
@@ -92,6 +104,10 @@ def process_movie_data(file_path):
 
 
 class GenreNode:
+    """
+    defines a node in a genre graph. Each node represents a genre and has connections to other genres.
+    """
+
     def __init__(self, genre):
         self.genre = genre
         self.connected_genres = defaultdict(int)
@@ -101,6 +117,10 @@ class GenreNode:
 
 
 class GenreGraph:
+    """
+    creates a graph where each genre is a node and each edge indicates a connection between genres.
+    """
+
     def __init__(self, movies):
         self.genre_nodes = self.build_graph(movies)
 
@@ -141,6 +161,10 @@ class GenreGraph:
 
 
 class Goal:
+    """
+    defines a goal for the recommender system. Each goal has a name, desired state, current state, and action.
+    """
+
     def __init__(self, name, desired_state, state, action):
         self.name = name
         self.state = state
@@ -159,16 +183,19 @@ class Goal:
     def getDesiredState(self):
         return self.desired_state
 
-    def isAchieved(self, recommender):
+    def isAchieved(self, recommender):  # Check if the desired state for the goal is achieved.
         if self.name == "recommend":
             return recommender.hasRecommendations()
         else:
-            # Check if the desired state for the "update" goal is achieved.
-            # Placeholder for now as it would depend on what the update action does.
+
             return False
 
 
 class RecommendationPlan:
+    """
+    generates movie recommendations based on a user's last viewed movie and a genre graph.
+    """
+
     def __init__(self, last_viewed_movie, genreGraph):
         self.last_viewed_movie = last_viewed_movie
         self.genreGraph = genreGraph
@@ -176,18 +203,22 @@ class RecommendationPlan:
 
     def generate_recommendations(self):
         similar_genres = self.genreGraph.bfs(self.last_viewed_movie.genre[0])
-        similar_movies = set()  # use a set instead of list
+        similar_movies = set()
         for genre in similar_genres:
             for movie in self.last_viewed_movie.similar_movies:
                 if genre in movie.genre and movie != self.last_viewed_movie:
                     similar_movies.add(movie)
-        return list(similar_movies)  # convert the set back to a list
+        return list(similar_movies)
 
     def getRecommendations(self):
         return self.movieRecommendations
 
 
 class Recommender:
+    """
+    a movie recommender agent which makes movie recommendations and updates a user's watchlist.
+    """
+
     def __init__(self, movieDataset, genreGraph, watchlistManagement):
         self.movieRecomendations = []
         self.movieDataset = movieDataset
@@ -235,9 +266,12 @@ class Recommender:
 
 
 class User:
-    def __init__(self, username, watchlist=[]):
+    """
+    defines a user with a username.
+    """
+
+    def __init__(self, username):
         self.username = username
-        self.watchlist = watchlist
 
     def getUsername(self):
         return self.username
@@ -245,14 +279,12 @@ class User:
     def setUsername(self, username):
         self.username = username
 
-    def getWatchlist(self):
-        return self.watchlist
-
-    def setWatchlist(self, newWatchlist):
-        self.watchlist = newWatchlist
-
 
 class WatchlistManagement:
+    """
+    manages the watchlists of all users.
+    """
+
     def __init__(self):
         self.userWatchlists = {}
 
@@ -287,59 +319,11 @@ class WatchlistManagement:
             print(f"No existing watchlist for user: {user.getUsername()}")
 
 
-# Usage example:
-file_path = './assets/movies.csv'
-movies = process_movie_data(file_path)
-genreGraph = GenreGraph(movies)  # Create GenreGraph once
-watchlistManagement = WatchlistManagement()
-user = User('JohnDoe')
-
-analyser = Analyser('Inception', movies)
-result_movie = analyser.analyse()
-
-recommender = Recommender(movies, genreGraph, watchlistManagement)  # Pass the genreGraph to the Recommender
-goal_recommend = Goal("recommend", "has recommendations", "active", "recommend")
-recommender.addGoal(goal_recommend)
-recommender.setActiveGoal(goal_recommend)
-
-last_viewed_movie = result_movie  # Assume the last viewed movie is the one analysed
-plan = RecommendationPlan(last_viewed_movie, genreGraph)
-recommender.act(user, plan)
-
-print("Has recommendations?", goal_recommend.isAchieved(recommender))
-
-# Fetch the recommended movies
-recommended_movies = recommender.getMovieRecommendations()
-
-# Print the titles of the recommended movies
-for movie in recommended_movies:
-    print(movie.title)
-
-# Let's add the first recommended movie to the user's watchlist
-goal_update_add = Goal("update", "add", "active", "update")
-recommender.addGoal(goal_update_add)
-recommender.setActiveGoal(goal_update_add)
-recommender.act(user, None, recommended_movies[6])
-
-# Let's check if the movie was added successfully
-print("User's watchlist after adding a movie:")
-for movie in watchlistManagement.getUserWatchlist(user):
-    print(movie.title)
-
-# Let's remove the added movie from the user's watchlist
-goal_update_remove = Goal("update", "remove", "active", "update")
-recommender.addGoal(goal_update_remove)
-recommender.setActiveGoal(goal_update_remove)
-recommender.act(user, None, recommended_movies[6])
-
-# Let's check if the movie was removed successfully
-print("User's watchlist after removing a movie:")
-for movie in watchlistManagement.getUserWatchlist(user):
-    print(movie.title)
-
-
 @app.route('/', methods=['GET', 'POST'])
 def setup():
+    """
+    sets up the application by creating a user with a username provided by a user.
+    """
     if request.method == 'POST':
         username = request.form.get('username')
         global user
@@ -351,38 +335,53 @@ def setup():
 
 
 template_path = 'home.html'
+
+
 @app.route('/home', methods=['GET', 'POST'])
 def home():
+    """
+    the home page of the application where a user can get movie recommendations.
+    """
     if request.method == 'POST':
         movie_title = request.form.get('movie_title')
         if movie_title:
-            recommendations = get_recommendations(movie_title)  # Assuming this is your function to get recommendations
+            recommendations = get_recommendations(movie_title)
             return render_template('home.html', recommendations=recommendations)
 
     return render_template('home.html', recommendations=[])
 
+
 def get_recommendations(title):
+    """
+    returns a list of movie recommendations for a given movie title.
+    """
     analyser = Analyser(title, movies)
     result_movie = analyser.analyse()
-    recommender = Recommender(movies, genreGraph, watchlistManagement)  # Pass the genreGraph to the Recommender
+    recommender = Recommender(movies, genreGraph, watchlistManagement)
     plan = RecommendationPlan(result_movie, genreGraph)
     goal_recommend = Goal("recommend", "has recommendations", "active", "recommend")
     recommender.addGoal(goal_recommend)
     recommender.setActiveGoal(goal_recommend)
     recommender.act(user, plan)
     print("Has recommendations?", goal_recommend.isAchieved(recommender))
-    # Fetch the recommended movies
     recommended_movies = recommender.getMovieRecommendations()
     return recommended_movies
 
+
 @app.route('/watchlist', methods=['GET'])
 def watchlist():
+    """
+    displays a user's watchlist.
+    """
     watchlist = watchlistManagement.getUserWatchlist(user)
     return render_template('watchlist.html', watchlist=watchlist)
 
 
 @app.route('/add_to_watchlist', methods=['POST'])
 def add_to_watchlist():
+    """
+    adds a movie to a user's watchlist.
+    """
     if request.method == 'POST':
         movie_title = request.form['movie_title']
         movie = next((movie for movie in movies if movie.title.lower() == movie_title.lower()), None)
@@ -393,8 +392,12 @@ def add_to_watchlist():
             recommender.act(user, None, movie)
         return redirect(url_for('home'))
 
+
 @app.route('/remove_from_watchlist', methods=['POST'])
 def remove_from_watchlist():
+    """
+    removes a movie from a user's watchlist.
+    """
     if request.method == 'POST':
         movie_title = request.form['movie_title']
         movie = next((movie for movie in movies if movie.title.lower() == movie_title.lower()), None)
@@ -409,7 +412,7 @@ def remove_from_watchlist():
 if __name__ == "__main__":
     file_path = './assets/movies.csv'
     movies = process_movie_data(file_path)
-    genreGraph = GenreGraph(movies)  # Create GenreGraph once
+    genreGraph = GenreGraph(movies)
     watchlistManagement = WatchlistManagement()
     user = User('JohnDoe')
     recommender = Recommender(movies, genreGraph, watchlistManagement)
