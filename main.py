@@ -6,6 +6,7 @@ from flask import Flask, request, render_template, redirect, url_for
 app = Flask(__name__)
 
 
+
 class Movie:
     """A class to represent a movie with its attributes like title, director, genre, etc."""
 
@@ -20,6 +21,7 @@ class Movie:
         self.plot = plot
         self.poster_link = poster_link
         self.similar_movies = similar_movies
+
 
 
 class Analyser:
@@ -419,4 +421,4 @@ if __name__ == "__main__":
     goal_recommend = Goal("recommend", "has recommendations", "active", "recommend")
     recommender.addGoal(goal_recommend)
     recommender.setActiveGoal(goal_recommend)
-    app.run(debug=True)
+    app.run(debug=False)
