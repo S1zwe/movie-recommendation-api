@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Recommender</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #333;
+            color: #f5f5f5;
+        }
+
+        .btn-primary {
+            background-color: #ff5722;
+            border: none;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #f5f5f5;
+            color: black;
+        }
+
+        .card {
+            background-color: #555;
+        }
+
+        .card-title, .card-img-top {
+            color: #f5f5f5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="text-center my-5">
+            <h1>Movie Recommender</h1>
+            <form action="/home" method="post">
+                <div class="form-group">
+                    <label for="movie_title">Enter a movie title</label>
+                    <input type="text" class="form-control" id="movie_title" name="movie_title" placeholder="enter your favourite movie, i'll recommend something you might like :)">
+                </div>
+                <button type="submit" class="btn btn-primary">Search</button>
+                <a href="/watchlist" class="btn btn-primary">View Watchlist</a>
+            </form>
+        </div>
+
+        <!-- Display movie recommendations -->
+        <div class="row mt-5">
+            {% for movie in recommendations %}
+                <div class="col-6 col-sm-4 col-md-3 col-lg-2 my-3">
+                    <div class="card">
+                        <img src="{{ movie.poster_link }}" class="card-img-top" alt="{{ movie.title }}">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ movie.title }}</h5>
+                            <form action="/add_to_watchlist" method="post">
+                                <input type="hidden" name="movie_title" value="{{ movie.title }}">
+                                <button type="submit" class="btn btn-primary">Add to watchlist</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>
